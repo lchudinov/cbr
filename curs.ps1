@@ -2,7 +2,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 # Создаем форму
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Курс доллара"
+$form.Text = "Курс доллара ЦБ РФ"
 $form.Size = New-Object System.Drawing.Size(300, 200)
 $form.StartPosition = "CenterScreen"
 
