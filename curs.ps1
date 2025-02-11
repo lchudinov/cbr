@@ -28,13 +28,13 @@ $form.Controls.Add($outputTextBox)
 
 # Функция запроса курса
 function Get-UsdRate {
-    param([string]$On_date)
+	param([string]$On_date)
 
-    $uri = "https://cbr.ru/DailyInfoWebServ/DailyInfo.asmx"
-    $soapAction = "http://web.cbr.ru/GetCursOnDateXML"
-    $headers = @{ "Content-Type" = "text/xml; charset=utf-8"; "SOAPAction" = $soapAction }
+	$uri = "https://cbr.ru/DailyInfoWebServ/DailyInfo.asmx"
+	$soapAction = "http://web.cbr.ru/GetCursOnDateXML"
+	$headers = @{ "Content-Type" = "text/xml; charset=utf-8"; "SOAPAction" = $soapAction }
 
-    $body = @"
+	$body = @"
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
                xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
@@ -47,46 +47,46 @@ function Get-UsdRate {
 </soap:Envelope>
 "@
 
-    try {
-        $response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $body -UseBasicParsing
-        [xml]$xml = $response.Content
+	try {
+		$response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $body -UseBasicParsing
+		[xml]$xml = $response.Content
 
-        # Определяем пространство имен
-        $namespace = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
-        $namespace.AddNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/")
-        $namespace.AddNamespace("cbr", "http://web.cbr.ru/")
+		# Определяем пространство имен
+		$namespace = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+		$namespace.AddNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/")
+		$namespace.AddNamespace("cbr", "http://web.cbr.ru/")
 
-        # Получаем XML-результат
-        $resultNode = $xml.SelectSingleNode("//soap:Body/cbr:GetCursOnDateXMLResponse/cbr:GetCursOnDateXMLResult", $namespace)
+		# Получаем XML-результат
+		$resultNode = $xml.SelectSingleNode("//soap:Body/cbr:GetCursOnDateXMLResponse/cbr:GetCursOnDateXMLResult", $namespace)
 
-        if ($resultNode) {
-            [xml]$valuteData = $resultNode.OuterXml
-            $valutes = $valuteData.SelectNodes("//ValuteCursOnDate")
+		if ($resultNode) {
+			[xml]$valuteData = $resultNode.OuterXml
+			$valutes = $valuteData.SelectNodes("//ValuteCursOnDate")
 
-            foreach ($valute in $valutes) {
-                $code = $valute.VchCode
-                $rate = $valute.Vcurs
+			foreach ($valute in $valutes) {
+				$code = $valute.VchCode
+				$rate = $valute.Vcurs
 
-                if ($code -eq "USD") {
-                    return "$rate"
-                }
-            }
-        }
-    } catch {
-        return "Ошибка запроса: $_"
-    }
-    return "Данные не найдены"
+				if ($code -eq "USD") {
+					return "$rate"
+				}
+			}
+		}
+	} catch {
+		return "Ошибка запроса: $_"
+	}
+	return "Данные не найдены"
 }
 
 # Функция обновления курса
 function Update-Rate {
-    $selectedDate = $datePicker.Value.ToString("yyyy-MM-dd")
-    $outputTextBox.Text = "Загрузка..."
-    $rate = Get-UsdRate -On_date $selectedDate
-    $outputTextBox.Text = $rate
-    if ($rate -notmatch "Ошибка|Данные не найдены") {
-      Set-Clipboard -Value $rate
-  }
+	$selectedDate = $datePicker.Value.ToString("yyyy-MM-dd")
+	$outputTextBox.Text = "Загрузка..."
+	$rate = Get-UsdRate -On_date $selectedDate
+	$outputTextBox.Text = $rate
+	if ($rate -notmatch "Ошибка|Данные не найдены") {
+		Set-Clipboard -Value $rate
+	}
 }
 
 # Событие изменения даты
